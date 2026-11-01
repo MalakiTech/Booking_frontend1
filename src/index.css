@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { @apply bg-slate-50 text-ink antialiased; }
+  input, select, textarea { @apply outline-none; }
+}
+@layer components {
+  .input { @apply w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-sm placeholder:text-slate-400 focus:border-brand-600 focus:ring-2 focus:ring-brand-100; }
+  .btn { @apply inline-flex items-center justify-center rounded-md bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2 disabled:opacity-60; }
+  .btn-outline { @apply inline-flex items-center justify-center rounded-md border border-brand-600 bg-white px-4 py-2 text-sm font-semibold text-brand-600 transition hover:bg-brand-50; }
+  .card { @apply rounded-xl border border-slate-200 bg-white shadow-sm; }
+  .label { @apply mb-1.5 block text-sm font-medium text-slate-700; }
+}
