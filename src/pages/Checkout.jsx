@@ -6,12 +6,16 @@ import { useFetch } from "../lib/hooks.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Img, Stars, Spinner, ErrorNote } from "../components/ui.jsx";
 import { addDays, money, nightsBetween, plural, TAX_RATE, todayStr } from "../lib/utils.js";
+import MpesaPay from "../components/MpesaPay.jsx";
+
+
 
 const METHODS = [
   ["mpesa", "M-Pesa", "Pay with M-Pesa", Smartphone],
-  ["card", "Credit/Debit Card", "Visa, Mastercard", CreditCard],
+  ["card", "Credit/Debit Card", "Coming soon", CreditCard, true],
   ["pay_at_hotel", "Pay at Hotel", "Pay when you arrive", Building],
 ];
+
 const STEPS = ["Details", "Payment", "Confirmation"];
 
 export default function Checkout() {
@@ -56,11 +60,7 @@ export default function Checkout() {
       setStep(f.payment_method === "pay_at_hotel" ? 3 : 2);
     } catch (e2) { setErr(e2.message); } finally { setBusy(false); }
   };
-  const pay = async () => {
-    setBusy(true); setErr("");
-    try { setBooking(await api(`/bookings/${booking.id}/pay/`, { method: "POST" })); setStep(3); }
-    catch (e2) { setErr(e2.message); } finally { setBusy(false); }
-  };
+ 
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
@@ -89,16 +89,11 @@ export default function Checkout() {
           <p className="text-sm text-slate-500">Reference <b className="text-ink">{booking?.reference}</b>. A confirmation was sent to {f.guest_email}.</p>
           <Link to="/bookings" className="btn mt-2">View my bookings</Link>
         </div>
-      ) : step === 2 ? (
+           ) : step === 2 ? (
         <div className="card mx-auto max-w-lg space-y-4 p-6">
-          <h2 className="text-lg font-bold">Pay {money(booking.total)}</h2>
-          <p className="text-sm text-slate-600">
-            {f.payment_method === "mpesa"
-              ? `We'll send an M-Pesa prompt to ${f.guest_phone}. Enter your PIN to approve it.`
-              : "You'll enter your card details on our secure payment page."}
-          </p>
-          <ErrorNote>{err}</ErrorNote>
-          <button className="btn w-full" disabled={busy} onClick={pay}>{busy ? "Processing…" : `Pay ${money(booking.total)}`}</button>
+          <h2 className="text-lg font-bold">Pay with M-Pesa</h2>
+          <MpesaPay booking={booking} defaultPhone={f.guest_phone}
+            onPaid={() => { setBooking({ ...booking, status: "confirmed" }); setTimeout(() => setStep(3), 1200); }} />
         </div>
       ) : (
         <form onSubmit={submit} className="grid gap-6 md:grid-cols-[1fr_340px]">
@@ -141,9 +136,9 @@ export default function Checkout() {
             </section>
             <section className="card space-y-2 p-5">
               <h2 className="font-semibold">Choose Payment Method</h2>
-              {METHODS.map(([v, title, sub, Icon]) => (
-                <label key={v} className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 ${f.payment_method === v ? "border-brand-600 bg-brand-50" : ""}`}>
-                  <input type="radio" name="pay" className="accent-brand-600" checked={f.payment_method === v} onChange={() => set({ payment_method: v })} />
+              {METHODS.map(([v, title, sub, Icon, off]) => (
+                <label key={v} className={`flex items-center gap-3 rounded-lg border p-3 ${off ? "cursor-not-allowed opacity-50" : "cursor-pointer"} ${f.payment_method === v ? "border-brand-600 bg-brand-50" : ""}`}>
+                  <input type="radio" name="pay" disabled={off} className="accent-brand-600" checked={f.payment_method === v} onChange={() => set({ payment_method: v })} />
                   <Icon size={20} className="text-slate-500" />
                   <span className="text-sm"><b className="block">{title}</b><span className="text-xs text-slate-500">{sub}</span></span>
                 </label>

@@ -6,6 +6,8 @@ import { useFetch } from "../lib/hooks.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Img, Spinner, ErrorNote } from "../components/ui.jsx";
 import { fmtDate, todayStr } from "../lib/utils.js";
+import MpesaPay from "../components/MpesaPay.jsx";
+
 
 const BADGE = {
   confirmed: "bg-green-100 text-green-700", pending: "bg-amber-100 text-amber-700",
@@ -20,6 +22,7 @@ export default function MyBookings() {
   const [tab, setTab] = useState("upcoming");
   const [local, setLocal] = useState({}); // id -> updated booking after cancel/pay
   const [err, setErr] = useState("");
+  const [payingId, setPayingId] = useState(null);
 
   const act = async (b, action) => {
     setErr("");
@@ -61,7 +64,7 @@ export default function MyBookings() {
           ) : (
             <ul className="space-y-4">
               {list.map((b) => (
-                <li key={b.id} className="card flex flex-col gap-4 p-4 sm:flex-row">
+                <li key={b.id} className="card flex flex-col gap-4 p-4 sm:flex-row sm:flex-wrap">
                   <Img src={b.hotel_image} alt={b.hotel_name} className="h-32 w-full rounded-lg sm:w-48" />
                   <div className="flex-1 space-y-1 text-sm">
                     <div className="flex items-start justify-between gap-2">
@@ -74,12 +77,20 @@ export default function MyBookings() {
                     <p className="flex items-center gap-1.5 text-slate-500"><Users size={13} />{b.adults} Adults, {b.children} Children</p>
                     <div className="flex gap-2 pt-2">
                       <Link to={`/hotels/${b.hotel}`} className="btn-outline">View Details</Link>
-                      {b.status === "pending" && <button className="btn" onClick={() => act(b, "pay")}>Pay Now</button>}
+                     
                       {isUpcoming(b) && (
                         <button className="inline-flex items-center rounded-md border border-red-500 px-4 py-2 text-sm font-semibold text-red-600 hover:bg-red-50" onClick={() => act(b, "cancel")}>Cancel Booking</button>
                       )}
                     </div>
                   </div>
+                  
+                    {payingId === b.id && (
+                    <div className="basis-full border-t pt-4">
+                      <MpesaPay booking={b} defaultPhone={b.guest_phone}
+                        onPaid={() => { setLocal((l) => ({ ...l, [b.id]: { ...b, status: "confirmed" } })); setPayingId(null); }} />
+                    </div>
+                  )}
+                   
                 </li>
               ))}
             </ul>
